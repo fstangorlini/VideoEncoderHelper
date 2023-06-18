@@ -202,7 +202,7 @@ class main:
 
     def __init__(self):
         self.root = Tk()
-        self.GEOMETRY = '800x580'
+        self.GEOMETRY = '800x650'
         self.TITLE = 'Video Encoder Helper - by Felipe S.'
         self.SUBTITLE = 'ffmpeg Python video encoder - by Felipe S.'
         self.INITIAL_DIR = SOURCE_PATH
