@@ -35,7 +35,7 @@ SOURCE_PATH   = 'D:/Recordings/Counter-strike  Global Offensive'
 TARGET_PATH   = 'E:/My clips/Counter-strike  Global Offensive/'
 EXTENSION = '.mp4'
 
-QUALITY_BITRATE = {True:'8M', False:'1M'}
+QUALITY_BITRATE = {True:'12M', False:'2M'}
 
 THUMBNAIL_DIMENSIONS = (450,450)
 
