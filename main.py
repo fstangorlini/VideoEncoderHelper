@@ -200,26 +200,7 @@ class main:
             self.stringvar_codec.set('h264_nvenc')
         self.refresh_output_file()
 
-    def __init__(self):
-        self.root = Tk()
-        self.GEOMETRY = '800x650'
-        self.TITLE = 'Video Encoder Helper - by Felipe S.'
-        self.SUBTITLE = 'ffmpeg Python video encoder - by Felipe S.'
-        self.INITIAL_DIR = SOURCE_PATH
-        self.LABEL_PROGRESS = 'Progress: '
-        self.LABEL_STATUS = 'Status:'
-        self.STATE_NORMAL   = 'normal'
-        self.STATE_DISABLED = 'disabled'
-        self.FONT_CALIBRI   = 'Calibri'
-        self.BUTTONTEXT1 = 'Select Input file'
-        self.LABEL_OUTPUT = 'Output file'
-        self.BUTTONTEXT2 = 'Encode'
-        self.FILE_DIALOG_TITLE = 'Select a video file to encode'
-        self.FILETYPES = (("Videos", "*.mp4"), ("all files", "*.*"))
-        self.MSG_INFO_WORKING = 'Working, please wait...'
-        
-        self.params = {}
-        
+    def __ui_elements_init__(self):
         ###############################
         # Define root window properties
         ###############################
@@ -323,6 +304,7 @@ class main:
         
         self.label_thumbnail.grid(column=1,row=11)
 
+    def __pre_open__(self):
         ###############################
         # Pre-open
         ###############################
@@ -345,6 +327,34 @@ class main:
         self.intvar_hardware.set(1)
         self.booleanvar_high_quality.set(True)
         self.textfield_codec.configure(state=self.STATE_DISABLED,disabledbackground='white')
+
+    def __post_close__(self):
+        ###############################
+        # Post-close
+        ###############################
+        pass
+
+    def __init__(self):
+        self.root = Tk()
+        self.GEOMETRY = '800x650'
+        self.TITLE = 'Video Encoder Helper - by Felipe S.'
+        self.SUBTITLE = 'ffmpeg Python video encoder - by Felipe S.'
+        self.INITIAL_DIR = SOURCE_PATH
+        self.LABEL_PROGRESS = 'Progress: '
+        self.LABEL_STATUS = 'Status:'
+        self.STATE_NORMAL   = 'normal'
+        self.STATE_DISABLED = 'disabled'
+        self.FONT_CALIBRI   = 'Calibri'
+        self.BUTTONTEXT1 = 'Select Input file'
+        self.LABEL_OUTPUT = 'Output file'
+        self.BUTTONTEXT2 = 'Encode'
+        self.FILE_DIALOG_TITLE = 'Select a video file to encode'
+        self.FILETYPES = (("Videos", "*.mp4"), ("all files", "*.*"))
+        self.MSG_INFO_WORKING = 'Working, please wait...'
+        self.params = {}
+        
+        self.__ui_elements_init__()
+        self.__pre_open__()
         
         ###############################
         # GUI main loop
@@ -352,10 +362,7 @@ class main:
         self.root.after(100, self.update_root)
         self.root.mainloop()
         
-        ###############################
-        # Post-close
-        ###############################
-        pass
+        self.__post_close__()
         
 ###############################################################################
 ############################## END OF GUI CLASS ###############################
