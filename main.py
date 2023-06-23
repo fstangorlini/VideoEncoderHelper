@@ -19,6 +19,7 @@ from subprocess import call
 import tempfile
 import threading
 from datetime import datetime
+from configparser import ConfigParser
 
 ###############################################################################
 ############################# GLOBAL VARIABLES ################################
@@ -38,15 +39,16 @@ EXTENSION = '.mp4'
 QUALITY_BITRATE = {True:'12M', False:'2M'}
 
 THUMBNAIL_DIMENSIONS = (450,450)
-
+THUMBNAIL_FILE = os.path.join(tempfile.gettempdir(), 'VideoEncoderHelperThumbnail.jpg')
 FFMPEG_PATH = 'C:/ffmpeg/bin/ffmpeg.exe'
+CONFIG_FILE = os.path.join(tempfile.gettempdir(), 'VideoEncoderHelper.ini')
 
 ###############################################################################
 ########################### START OF ENCODER CLASS ############################
 ###############################################################################
 
 class Encoder:
-    def __init__(self, params:dict, queue:queue, FFMPEG_PATH:str='C:/ffmpeg/bin/ffmpeg.exe'):
+    def __init__(self, params:dict, queue:queue, FFMPEG_PATH:str='ffmpeg'):
         
         #Checks if input file exists
         if not os.path.exists(params['input']):
@@ -127,11 +129,10 @@ class main:
     def update_thumbnail(self):
         in_file = self.root.input_file
         if os.path.exists(in_file) and os.path.isfile(in_file):
-            temp_thumbnail = os.path.join(tempfile.gettempdir(), 'VideoEncoderTempThumbnail.jpg')
-            if os.path.exists(temp_thumbnail) and os.path.isfile(temp_thumbnail):
-                os.remove(temp_thumbnail)
-            call(['ffmpeg', '-i', in_file, '-ss', '00:00:00.000', '-vframes', '1', temp_thumbnail])
-            image = Image.open(temp_thumbnail)
+            if os.path.exists(THUMBNAIL_FILE) and os.path.isfile(THUMBNAIL_FILE):
+                os.remove(THUMBNAIL_FILE)
+            call(['ffmpeg', '-i', in_file, '-ss', '00:00:00.000', '-vframes', '1', THUMBNAIL_FILE])
+            image = Image.open(THUMBNAIL_FILE)
             image = ImageOps.contain(image, THUMBNAIL_DIMENSIONS)
             img = ImageTk.PhotoImage(image)
             self.label_thumbnail.configure(image=img)
@@ -144,14 +145,12 @@ class main:
             self.root.input_file = filedialog.askopenfilename(initialdir=input_folder)
         else:
             self.root.input_file = filedialog.askopenfilename()
-        
         self.update_thumbnail()
-            
         self.textfield_in_file.insert(0, self.root.input_file)
         self.textfield_out_file.delete(0, END)
-        self.textfield_out_file.insert(0, TARGET_PATH+os.path.basename(self.root.input_file))
-
-        return
+        a = self.config.get('directories','output_dir')
+        a = a+'/'+os.path.basename(self.root.input_file)
+        self.textfield_out_file.insert(0, a)
     
     def refresh_params(self):
         self.params['codec'] = self.stringvar_codec.get()
@@ -315,11 +314,11 @@ class main:
         self.textfield_status.delete(0, END)
         self.textfield_status.insert(0, self.FILE_DIALOG_TITLE)
         self.textfield_status.configure(state=self.STATE_DISABLED,disabledbackground='white')
-        self.textfield_in_file.insert(0,self.INITIAL_DIR)
-        self.textfield_sm.insert(0,'04')
-        self.textfield_ss.insert(0,'40')
-        self.textfield_em.insert(0,'05')
-        self.textfield_es.insert(0,'00')
+        self.textfield_in_file.insert(0,self.config.get('directories','input_dir'))
+        self.textfield_sm.insert(0,self.config.get('parameters','time_start_min'))
+        self.textfield_ss.insert(0,self.config.get('parameters','time_start_sec'))
+        self.textfield_em.insert(0,self.config.get('parameters','time_end_min'))
+        self.textfield_es.insert(0,self.config.get('parameters','time_end_sec'))
         self.intvar_hardware.set(0)
         self.stringvar_codec.set('hevc_nvenc')
         self.checkbox_high_quality.select()
@@ -332,14 +331,43 @@ class main:
         ###############################
         # Post-close
         ###############################
-        pass
+        input_dir = os.path.dirname(self.stringvar_text_in_file.get())
+        if os.path.exists(input_dir):
+            self.config.set('directories','input_dir',input_dir)
+        
+        output_dir = os.path.dirname(self.stringvar_text_out_file.get())
+        if os.path.exists(output_dir):
+            self.config.set('directories','output_dir',output_dir)
+
+        self.config.set('parameters','time_start_min',self.stringvar_sm.get())
+        self.config.set('parameters','time_start_sec',self.stringvar_ss.get())
+        self.config.set('parameters','time_end_min'  ,self.stringvar_em.get())
+        self.config.set('parameters','time_end_sec'  ,self.stringvar_es.get())
+
+        with open(CONFIG_FILE, 'w') as f:
+                self.config.write(f)
+
+    def __init_config__(self):
+        self.config = ConfigParser()
+        if not os.path.exists(CONFIG_FILE):
+            self.config.add_section('directories')
+            self.config.add_section('parameters')
+            self.config.set('directories','input_dir',SOURCE_PATH)
+            self.config.set('directories','output_dir',TARGET_PATH)
+            self.config.set('parameters','time_start_min','04')
+            self.config.set('parameters','time_start_sec','40')
+            self.config.set('parameters','time_end_min','05')
+            self.config.set('parameters','time_end_sec','00')
+            with open(CONFIG_FILE, 'w') as f:
+                self.config.write(f)
+        
+        self.config.read(CONFIG_FILE)
 
     def __init__(self):
         self.root = Tk()
         self.GEOMETRY = '800x650'
         self.TITLE = 'Video Encoder Helper - by Felipe S.'
         self.SUBTITLE = 'ffmpeg Python video encoder - by Felipe S.'
-        self.INITIAL_DIR = SOURCE_PATH
         self.LABEL_PROGRESS = 'Progress: '
         self.LABEL_STATUS = 'Status:'
         self.STATE_NORMAL   = 'normal'
@@ -352,7 +380,7 @@ class main:
         self.FILETYPES = (("Videos", "*.mp4"), ("all files", "*.*"))
         self.MSG_INFO_WORKING = 'Working, please wait...'
         self.params = {}
-        
+        self.__init_config__()
         self.__ui_elements_init__()
         self.__pre_open__()
         
