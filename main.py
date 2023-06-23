@@ -331,9 +331,12 @@ class main:
         ###############################
         # Post-close
         ###############################
-        input_dir = os.path.dirname(self.stringvar_text_in_file.get())
+        input_dir = self.stringvar_text_in_file.get()
         if os.path.exists(input_dir):
-            self.config.set('directories','input_dir',input_dir)
+            if os.path.isfile(input_dir):
+                self.config.set('directories','input_dir',os.path.dirname(input_dir))
+            else:
+                self.config.set('directories','input_dir',input_dir)
         
         output_dir = os.path.dirname(self.stringvar_text_out_file.get())
         if os.path.exists(output_dir):
