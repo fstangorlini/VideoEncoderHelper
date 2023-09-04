@@ -148,8 +148,8 @@ class main:
         self.update_thumbnail()
         self.textfield_in_file.insert(0, self.root.input_file)
         self.textfield_out_file.delete(0, END)
-        a = self.config.get('directories','output_dir')
-        a = a+'/'+os.path.basename(self.root.input_file)
+        #a = self.config.get('directories','output_dir')
+        a = os.path.dirname(self.textfield_in_file.get())+'/'+os.path.basename(self.root.input_file)
         self.textfield_out_file.insert(0, a)
     
     def refresh_params(self):
@@ -183,7 +183,7 @@ class main:
         if os.path.exists(f) and os.path.isfile(f):
             if self.booleanvar_high_quality.get():
                 self.textfield_out_file.delete(0, END)
-                self.textfield_out_file.insert(0, TARGET_PATH+os.path.basename(f))
+                self.textfield_out_file.insert(0, os.path.dirname(self.textfield_in_file.get())+'/'+os.path.basename(self.root.input_file))
             else:
                 o = self.textfield_out_file.get()
                 index = o.find(EXTENSION)
